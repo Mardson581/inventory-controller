@@ -35,7 +35,9 @@ public class SeedService : ISeedService
             UserName = _configuration["DefaultUser:Name"],
             Email = _configuration["DefaultUser:Email"],
         };
-        admin.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(admin, _configuration["DefaultUser:Password"]);
+
+        string? password = _configuration["DefaultUser:Password"];
+        admin.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(admin, string.IsNullOrEmpty(password) ? string.Empty : password);
 
         var result = await _userManager.CreateAsync(admin);
         if (!result.Succeeded)
@@ -46,7 +48,11 @@ public class SeedService : ISeedService
         _logger.LogInformation("O usuário ADMIN foi criado!");
 
         // Verifica se as roles ADMIN, SUPPORT e USER existem e cria caso não existam.
-        string[] roles = { "Admin", "Support", "User" };
+        string[] roles = { 
+            ApplicationUserRoles.Admin,
+            ApplicationUserRoles.Support,
+            ApplicationUserRoles.User
+        };
         foreach (string role in roles)
         {
             IdentityRole? identityRole = await _roleManager.FindByNameAsync(role);
