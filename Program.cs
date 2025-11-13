@@ -1,8 +1,8 @@
 using Inventory.Data;
 using Inventory.Models;
+using Inventory.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,5 +38,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Semeia o banco de dados caso o usuário Admin não exista.
+await new SeedService(app.Services).Initialize();
 
 app.Run();
