@@ -1,6 +1,7 @@
 using Inventory.Models;
 using Inventory.Services.Abstractions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Inventory.Services;
 
@@ -30,6 +31,27 @@ public class AdminService : IAdminService
     {
 
         return await CreateUserWithRoleAsync(user, ApplicationUserRoles.User);
+    }
+
+    public async Task<ApplicationUser?> GetUserAsync(string userName)
+    {
+        return await _userManager.FindByNameAsync(userName);
+    }
+    
+    public async Task<IdentityResult> UpdateUserAsync(ApplicationUser user)
+    {
+        return await _userManager.UpdateAsync(user);
+    }
+
+    public async Task<IdentityResult> DeleteUserAsync(string userName)
+    {
+        ApplicationUser? user = await GetUserAsync(userName);
+        return await _userManager.DeleteAsync(user);
+    }
+
+    public async Task<List<ApplicationUser>> GetUsersAsync()
+    {
+        return await _userManager.Users.ToListAsync();
     }
 
     private async Task<IdentityResult> CreateUserWithRoleAsync(ApplicationUser user, string roleName)
