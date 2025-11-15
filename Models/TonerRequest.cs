@@ -8,7 +8,7 @@ public class TonerRequest
     public int Id { get; set; }
 
     [Required]
-    public Toner Toner { get; set; }
+    public Toner? Toner { get; set; }
     public int TonerId { get; set; }
 
     [Range(1, 50, ErrorMessage = "A quantidade deve estar entre 1 e 50")]

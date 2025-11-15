@@ -5,9 +5,9 @@ namespace Inventory.Data;
 
 public class InventoryDbContext : DbContext
 {
-    public DbSet<Printer> printers;
-    public DbSet<Brand> brands;
-    public DbSet<Toner> toners;
+    public DbSet<Printer>? Printers;
+    public DbSet<Brand>? Brands;
+    public DbSet<Toner>? Toners;
 
     public InventoryDbContext(DbContextOptions<InventoryDbContext> options) : base(options) {  }
 
