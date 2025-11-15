@@ -1,6 +1,6 @@
 using Inventory.Data;
 using Inventory.Models;
-using Inventory.Services;
+using Inventory.Services.Seeding;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,6 +40,8 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // Semeia o banco de dados caso o usuário Admin não exista.
+// As informações do usuário estão no arquivo de configuração da aplicação
+// Verifique o arquivo appsetting.Development.json antes de rodar a aplicação!
 await new SeedService(app.Services).Initialize();
 
 app.Run();

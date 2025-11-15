@@ -1,4 +1,4 @@
-namespace Inventory.Services.Abstractions;
+namespace Inventory.Services.Abstractions.Seeding;
 
 public interface ISeedService
 {

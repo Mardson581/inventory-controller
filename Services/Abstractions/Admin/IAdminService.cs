@@ -1,7 +1,7 @@
 using Inventory.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace Inventory.Services.Abstractions;
+namespace Inventory.Services.Abstractions.Admin;
 
 public interface IAdminService
 {

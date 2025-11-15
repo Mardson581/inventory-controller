@@ -1,8 +1,8 @@
 using Inventory.Models;
-using Inventory.Services.Abstractions;
+using Inventory.Services.Abstractions.Seeding;
 using Microsoft.AspNetCore.Identity;
 
-namespace Inventory.Services;
+namespace Inventory.Services.Seeding;
 
 public class SeedService : ISeedService
 {

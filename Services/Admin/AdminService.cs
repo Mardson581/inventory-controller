@@ -1,9 +1,9 @@
 using Inventory.Models;
-using Inventory.Services.Abstractions;
+using Inventory.Services.Abstractions.Admin;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Inventory.Services;
+namespace Inventory.Services.Admin;
 
 public class AdminService : IAdminService
 {
