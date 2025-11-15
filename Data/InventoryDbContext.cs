@@ -5,9 +5,10 @@ namespace Inventory.Data;
 
 public class InventoryDbContext : DbContext
 {
-    public DbSet<Printer>? Printers;
-    public DbSet<Brand>? Brands;
-    public DbSet<Toner>? Toners;
+    public DbSet<Printer> Printers;
+    public DbSet<Brand> Brands;
+    public DbSet<Toner> Toners;
+    public DbSet<UserTonerRequest> TonerRequests;
 
     public InventoryDbContext(DbContextOptions<InventoryDbContext> options) : base(options) {  }
 
@@ -26,5 +27,11 @@ public class InventoryDbContext : DbContext
             .WithOne(t => t.UserTonerRequest)
             .HasForeignKey(t => t.UserTonerRequestId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserTonerRequest>()
+            .HasOne(r => r.SupportUser)
+            .WithMany()
+            .HasForeignKey(r => r.SupportUserId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
