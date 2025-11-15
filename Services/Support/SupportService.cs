@@ -82,6 +82,29 @@ public class SupportService : ISupportService
         return await SaveChanges();
     }
 
+    public async Task<bool> CompleteDeliverRequestAsync(string supportUserName, int tonerRequestId)
+    {
+        UserTonerRequest? request = await _context.TonerRequests.FindAsync(tonerRequestId);
+        if (request == null)
+        {
+            _logger.LogError("SupportService.GoDeliverRequestAsync falhou: não existe requisição com a id {ID}", tonerRequestId);
+            return false;
+        }
+
+        if (request.Status != TonerRequestStatus.Accepted && request.SupportUserId == supportUserName)
+        {
+            _logger.LogError(
+                "SupportService.GoDeliverRequestAsync falhou: a requisição com a id {REQID} não está com o status 'aceito' ou não pertence ao usuário {USERID}", 
+                tonerRequestId, 
+                supportUserName
+            );
+            return false;
+        }
+        
+        request.Status = TonerRequestStatus.Completed;
+        return await SaveChanges();
+    }
+
     public async Task<List<UserTonerRequest>> GetTonerRequestsAsync()
     {
         return await _context.TonerRequests.ToListAsync();
