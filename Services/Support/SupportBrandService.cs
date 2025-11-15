@@ -8,10 +8,12 @@ namespace Inventory.Services.Support;
 public class SupportBrandService : ISupportBrandService
 {
     private readonly InventoryDbContext _context;
+    private readonly ILogger<SupportBrandService> _logger;
 
-    public SupportBrandService(InventoryDbContext context)
+    public SupportBrandService(InventoryDbContext context, ILogger<SupportBrandService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<bool> CreateBrandAsync(Brand brand)
@@ -34,7 +36,10 @@ public class SupportBrandService : ISupportBrandService
     {
         Brand? brand = await GetByIdAsync(brandId);
         if (brand == null)
+        {
+            _logger.LogError("SupportBrandService.DeleteBrandAsync falhou: a Brand com a id {ID} não exite", brandId);
             return false;
+        }
         _context.Brands.Remove(brand);
         return await SaveChanges();
     }

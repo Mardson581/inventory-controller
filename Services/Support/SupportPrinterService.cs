@@ -8,10 +8,12 @@ namespace Inventory.Services.Support;
 public class SupportPrinterService : ISupportPrinterService
 {
     private readonly InventoryDbContext _context;
+    private readonly ILogger<SupportPrinterService> _logger;
 
-    public SupportPrinterService(InventoryDbContext context)
+    public SupportPrinterService(InventoryDbContext context, ILogger<SupportPrinterService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<bool> CreatePrinterAsync(Printer printer)
@@ -33,7 +35,10 @@ public class SupportPrinterService : ISupportPrinterService
     {
         Printer? printer = await GetByIdAsync(printerId);
         if (printer == null)
+        {
+            _logger.LogError("SupportPrinterService.DeleteBrandAsync falhou: a Printer com a id {ID} não exite", printerId);
             return false;
+        }
         _context.Printers.Remove(printer);
         return await SaveChanges();
     }
