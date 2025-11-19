@@ -27,7 +27,7 @@ public class SupportBrandService : ISupportBrandService
         return await _context.Brands.ToListAsync();
     }
 
-    public async Task<Brand> GetByIdAsync(int brandId)
+    public async Task<Brand?> GetByIdAsync(int brandId)
     {
         return await _context.Brands.FindAsync(brandId);
     }
