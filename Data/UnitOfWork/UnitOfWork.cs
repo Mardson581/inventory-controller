@@ -44,7 +44,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         }
     }
 
-    public IRepository<UserTonerRequest> UserTonerRequests
+    public IRepository<UserTonerRequest> TonerRequests
     {
         get
         {

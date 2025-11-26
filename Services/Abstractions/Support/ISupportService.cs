@@ -4,9 +4,9 @@ namespace Inventory.Services.Abstractions.Support;
 
 public interface ISupportService
 {
-    public Task<bool> AcceptTonerRequestAsync(string supportUserName, int tonerRequestId);
-    public Task<bool> RejectTonerRequestAsync(string supportUserName, int tonerRequestId); // Delete the request
-    public Task<bool> GoDeliverRequestAsync(string supportUserName, int tonerRequestId);
-    public Task<bool> CompleteDeliverRequestAsync(string supportUserName, int tonerRequestId);
-    public Task<List<UserTonerRequest>> GetTonerRequestsAsync();
+    public Task<Result> AcceptTonerRequestAsync(string supportUserName, int tonerRequestId);
+    public Task<Result> RejectTonerRequestAsync(string supportUserName, int tonerRequestId); // Delete the request
+    public Task<Result> GoDeliverRequestAsync(string supportUserName, int tonerRequestId);
+    public Task<Result> CompleteDeliverRequestAsync(string supportUserName, int tonerRequestId);
+    public Task<IEnumerable<UserTonerRequest>> GetTonerRequestsAsync();
 }

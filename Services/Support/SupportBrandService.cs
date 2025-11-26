@@ -1,51 +1,44 @@
-using Microsoft.EntityFrameworkCore;
+using Inventory.Data.UnitOfWork;
+using Inventory.Data.Abstractions.Repository;
 using Inventory.Services.Abstractions.Support;
 using Inventory.Models;
-using Inventory.Data;
 
 namespace Inventory.Services.Support;
 
 public class SupportBrandService : ISupportBrandService
 {
-    private readonly InventoryDbContext _context;
+    private readonly UnitOfWork _unitOfWork;
+    private readonly IRepository<Brand> _repository;
     private readonly ILogger<SupportBrandService> _logger;
 
-    public SupportBrandService(InventoryDbContext context, ILogger<SupportBrandService> logger)
+    public SupportBrandService(UnitOfWork unitOfWork, ILogger<SupportBrandService> logger)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
+        _repository = unitOfWork.Brands;
         _logger = logger;
     }
 
-    public async Task<bool> CreateBrandAsync(Brand brand)
+    public async Task<Result> CreateBrandAsync(Brand brand)
     {
-        await _context.Brands.AddAsync(brand);
-        return await SaveChanges();
+        await _repository.CreateAsync(brand);
+        _logger.LogInformation("Criando Marca {NAME}", brand.Name);
+        return await _unitOfWork.CommitAsync();
     }
 
-    public async Task<List<Brand>> GetBrandsAsync()
+    public async Task<IEnumerable<Brand>> GetBrandsAsync()
     {
-        return await _context.Brands.ToListAsync();
+        return await _repository.GetAllAsync();
     }
 
     public async Task<Brand?> GetByIdAsync(int brandId)
     {
-        return await _context.Brands.FindAsync(brandId);
+        return await _repository.GetByIdAsync(brandId);
     }
 
-    public async Task<bool> DeleteBrandAsync(int brandId)
+    public async Task<Result> DeleteBrandAsync(int brandId)
     {
-        Brand? brand = await GetByIdAsync(brandId);
-        if (brand == null)
-        {
-            _logger.LogError("SupportBrandService.DeleteBrandAsync falhou: a Brand com a id {ID} não exite", brandId);
-            return false;
-        }
-        _context.Brands.Remove(brand);
-        return await SaveChanges();
-    }
-
-    public async Task<bool> SaveChanges()
-    {
-        return await _context.SaveChangesAsync() > 0;
+        _logger.LogWarning("Deletando marca com id {ID}", brandId);
+        await _repository.Delete(brandId);
+        return await _unitOfWork.CommitAsync();
     }
 }

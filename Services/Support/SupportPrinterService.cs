@@ -1,3 +1,5 @@
+using Inventory.Data.UnitOfWork;
+using Inventory.Data.Abstractions.Repository;
 using Microsoft.EntityFrameworkCore;
 using Inventory.Data;
 using Inventory.Services.Abstractions.Support;
@@ -7,44 +9,37 @@ namespace Inventory.Services.Support;
 
 public class SupportPrinterService : ISupportPrinterService
 {
-    private readonly InventoryDbContext _context;
+    private readonly UnitOfWork _unitOfWork;
+    private readonly IRepository<Printer> _repository;
     private readonly ILogger<SupportPrinterService> _logger;
 
-    public SupportPrinterService(InventoryDbContext context, ILogger<SupportPrinterService> logger)
+    public SupportPrinterService(UnitOfWork unitOfWork, ILogger<SupportPrinterService> logger)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
+        _repository = unitOfWork.Printers;
         _logger = logger;
     }
 
-    public async Task<bool> CreatePrinterAsync(Printer printer)
+    public async Task<Result> CreatePrinterAsync(Printer printer)
     {
-        await _context.Printers.AddAsync(printer);
-        return await SaveChanges();
+        _logger.LogInformation("Criando Impressora {NAME}", printer.Name);
+        await _repository.CreateAsync(printer);
+        return await _unitOfWork.CommitAsync();
     }
-    public async Task<List<Printer>> GetPrintersAsync()
+    public async Task<IEnumerable<Printer>> GetPrintersAsync()
     {
-        return await _context.Printers.ToListAsync();
+        return await _repository.GetAllAsync();
     }
 
     public async Task<Printer> GetByIdAsync(int printerId)
     {
-        return await _context.Printers.FindAsync(printerId);
+        return await _repository.GetByIdAsync(printerId);
     }
     
-    public async Task<bool> DeletePrinterAsync(int printerId)
+    public async Task<Result> DeletePrinterAsync(int printerId)
     {
-        Printer? printer = await GetByIdAsync(printerId);
-        if (printer == null)
-        {
-            _logger.LogError("SupportPrinterService.DeleteBrandAsync falhou: a Printer com a id {ID} não exite", printerId);
-            return false;
-        }
-        _context.Printers.Remove(printer);
-        return await SaveChanges();
-    }
-
-    public async Task<bool> SaveChanges()
-    {
-        return await _context.SaveChangesAsync() > 0;
+        _logger.LogWarning("Deletando impressora com id {ID}", printerId);
+        await _repository.Delete(printerId);
+        return await _unitOfWork.CommitAsync();
     }
 }

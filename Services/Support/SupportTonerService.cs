@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
-using Inventory.Data;
+using Inventory.Data.UnitOfWork;
+using Inventory.Data.Abstractions.Repository;
 using Inventory.Services.Abstractions.Support;
 using Inventory.Models;
 
@@ -7,45 +7,38 @@ namespace Inventory.Services.Support;
 
 public class SupportTonerService : ISupportTonerService
 {
-    private readonly InventoryDbContext _context;
+    private readonly UnitOfWork _unitOfWork;
+    private readonly IRepository<Toner> _repository;
     private readonly ILogger<SupportTonerService> _logger;
 
-    public SupportTonerService(InventoryDbContext context, ILogger<SupportTonerService> logger)
+    public SupportTonerService(UnitOfWork unitOfWork, ILogger<SupportTonerService> logger)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
+        _repository = unitOfWork.Toners;
         _logger = logger;
     }
 
-    public async Task<bool> CreateTonerAsync(Toner toner)
+    public async Task<Result> CreateTonerAsync(Toner toner)
     {
-        await _context.Toners.AddAsync(toner);
-        return await SaveChanges();
+        _logger.LogInformation("Criando Toner {NAME}", toner.Name);
+        await _repository.CreateAsync(toner);
+        return await _unitOfWork.CommitAsync();
     }
 
-    public async Task<List<Toner>> GetTonersAsync()
+    public async Task<IEnumerable<Toner>> GetTonersAsync()
     {
-        return await _context.Toners.ToListAsync();
+        return await _repository.GetAllAsync();
     }
 
-    public async Task<Toner> GetByIdAsync(int id)
+    public async Task<Toner?> GetByIdAsync(int id)
     {
-        return await _context.Toners.FindAsync(id);
+        return await _repository.GetByIdAsync(id);
     }
 
-    public async Task<bool> DeleteTonerAsync(int tonerId)
+    public async Task<Result> DeleteTonerAsync(int tonerId)
     {
-        Toner? toner = await GetByIdAsync(tonerId);
-        if (toner == null)
-        {
-            _logger.LogError("SupportTonerService.DeleteBrandAsync falhou: o Toner com a id {ID} não exite", tonerId);
-            return false;
-        }
-        _context.Toners.Remove(toner);
-        return await SaveChanges();
-    }
-
-    public async Task<bool> SaveChanges()
-    {
-        return await _context.SaveChangesAsync() > 0;
+        _logger.LogWarning("Deletando toner com id {ID}", tonerId);
+        await _repository.Delete(tonerId);
+        return await _unitOfWork.CommitAsync();
     }
 }
