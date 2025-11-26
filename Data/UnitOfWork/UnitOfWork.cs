@@ -12,6 +12,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     private IRepository<Brand> _brands;
     private IRepository<Printer> _printers;
     private IRepository<Toner> _toners;
+    private IRepository<UserTonerRequest> _userTonerRequests;
 
     public IRepository<Brand> Brands
     {
@@ -40,6 +41,16 @@ public class UnitOfWork : IUnitOfWork, IDisposable
             if (_toners == null)
                 _toners = new InventoryRepository<Toner>(_context);
             return _toners;
+        }
+    }
+
+    public IRepository<UserTonerRequest> UserTonerRequests
+    {
+        get
+        {
+            if (_userTonerRequests == null)
+                _userTonerRequests = new InventoryRepository<UserTonerRequest>(_context);
+            return _userTonerRequests;
         }
     }
 
