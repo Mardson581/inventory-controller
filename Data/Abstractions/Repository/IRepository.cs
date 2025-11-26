@@ -2,10 +2,12 @@ using Inventory.Models;
 
 namespace Inventory.Data.Abstractions.Repository;
 
-public interface IRepository<TClass, TKey> where TClass : class
+public interface IRepository<TClass> where TClass : class
 {
     public Task<IEnumerable<TClass>> GetAllAsync();
-    public Task<TClass?> GetByIdAsync(TKey id);
-    public Task<Result> CreateAsync(TClass model);
-    public Task<Result> DeleteAsync(TClass model);
+    public Task<TClass?> GetByIdAsync(int id);
+    public Task CreateAsync(TClass model);
+    public void Delete(TClass model);
+    public Task Delete(int id);
+    public void Update(TClass model);
 }
