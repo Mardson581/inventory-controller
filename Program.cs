@@ -1,5 +1,8 @@
 using Inventory.Data;
+using Inventory.Data.UnitOfWork;
 using Inventory.Models;
+using Inventory.Services.Abstractions.Support;
+using Inventory.Services.Support;
 using Inventory.Services.Seeding;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +28,13 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireUppercase = false;
     options.User.RequireUniqueEmail = true;
 });
+
+builder.Services.AddSingleton<UnitOfWork>();
+
+builder.Services.AddScoped<ISupportBrandService, SupportBrandService>();
+builder.Services.AddScoped<ISupportPrinterService, SupportPrinterService>();
+builder.Services.AddScoped<ISupportTonerService, SupportTonerService>();
+builder.Services.AddScoped<ISupportService, SupportService>();
 
 var app = builder.Build();
 

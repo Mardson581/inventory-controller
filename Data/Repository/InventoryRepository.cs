@@ -1,6 +1,5 @@
 using Inventory.Data.Abstractions.Repository;
 using Microsoft.EntityFrameworkCore;
-using Inventory.Models;
 
 namespace Inventory.Data.Repository;
 
