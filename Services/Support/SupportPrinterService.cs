@@ -7,18 +7,11 @@ using Inventory.Models;
 
 namespace Inventory.Services.Support;
 
-public class SupportPrinterService : ISupportPrinterService
+public class SupportPrinterService(UnitOfWork unitOfWork, ILogger<SupportPrinterService> logger) : ISupportPrinterService
 {
-    private readonly UnitOfWork _unitOfWork;
-    private readonly IRepository<Printer> _repository;
-    private readonly ILogger<SupportPrinterService> _logger;
-
-    public SupportPrinterService(UnitOfWork unitOfWork, ILogger<SupportPrinterService> logger)
-    {
-        _unitOfWork = unitOfWork;
-        _repository = unitOfWork.Printers;
-        _logger = logger;
-    }
+    private readonly UnitOfWork _unitOfWork = unitOfWork;
+    private readonly IRepository<Printer> _repository = unitOfWork.Printers;
+    private readonly ILogger<SupportPrinterService> _logger = logger;
 
     public async Task<Result<int>> CreatePrinterAsync(Printer printer)
     {

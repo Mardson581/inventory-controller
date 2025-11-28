@@ -5,18 +5,11 @@ using Inventory.Models;
 
 namespace Inventory.Services.Support;
 
-public class SupportTonerService : ISupportTonerService
+public class SupportTonerService(UnitOfWork unitOfWork, ILogger<SupportTonerService> logger) : ISupportTonerService
 {
-    private readonly UnitOfWork _unitOfWork;
-    private readonly IRepository<Toner> _repository;
-    private readonly ILogger<SupportTonerService> _logger;
-
-    public SupportTonerService(UnitOfWork unitOfWork, ILogger<SupportTonerService> logger)
-    {
-        _unitOfWork = unitOfWork;
-        _repository = unitOfWork.Toners;
-        _logger = logger;
-    }
+    private readonly UnitOfWork _unitOfWork = unitOfWork;
+    private readonly IRepository<Toner> _repository = unitOfWork.Toners;
+    private readonly ILogger<SupportTonerService> _logger = logger;
 
     public async Task<Result<int>> CreateTonerAsync(Toner toner)
     {

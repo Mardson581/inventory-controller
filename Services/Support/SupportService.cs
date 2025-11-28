@@ -6,20 +6,12 @@ using Inventory.Data.UnitOfWork;
 
 namespace Inventory.Services.Support;
 
-public class SupportService : ISupportService
+public class SupportService(UnitOfWork unitOfWork, UserManager<ApplicationUser> users, ILogger<SupportService> logger) : ISupportService
 {
-    private readonly UnitOfWork _unitOfWork;
-    private readonly IRepository<UserTonerRequest> _repository;
-    private readonly UserManager<ApplicationUser> _users;
-    private readonly ILogger<SupportService> _logger;
-
-    public SupportService(UnitOfWork unitOfWork, UserManager<ApplicationUser> users, ILogger<SupportService> logger)
-    {
-        _unitOfWork = unitOfWork;
-        _repository = unitOfWork.TonerRequests;
-        _users = users;
-        _logger = logger;
-    }
+    private readonly UnitOfWork _unitOfWork = unitOfWork;
+    private readonly IRepository<UserTonerRequest> _repository = unitOfWork.TonerRequests;
+    private readonly UserManager<ApplicationUser> _users = users;
+    private readonly ILogger<SupportService> _logger = logger;
 
     public async Task<Result<UserTonerRequest?>> AcceptTonerRequestAsync(string supportUserName, int tonerRequestId)
     {

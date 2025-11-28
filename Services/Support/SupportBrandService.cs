@@ -5,18 +5,11 @@ using Inventory.Models;
 
 namespace Inventory.Services.Support;
 
-public class SupportBrandService : ISupportBrandService
+public class SupportBrandService(UnitOfWork unitOfWork, ILogger<SupportBrandService> logger) : ISupportBrandService
 {
-    private readonly UnitOfWork _unitOfWork;
-    private readonly IRepository<Brand> _repository;
-    private readonly ILogger<SupportBrandService> _logger;
-
-    public SupportBrandService(UnitOfWork unitOfWork, ILogger<SupportBrandService> logger)
-    {
-        _unitOfWork = unitOfWork;
-        _repository = unitOfWork.Brands;
-        _logger = logger;
-    }
+    private readonly UnitOfWork _unitOfWork = unitOfWork;
+    private readonly IRepository<Brand> _repository = unitOfWork.Brands;
+    private readonly ILogger<SupportBrandService> _logger = logger;
 
     public async Task<Result<int>> CreateBrandAsync(Brand brand)
     {
