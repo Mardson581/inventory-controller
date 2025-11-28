@@ -1,10 +1,8 @@
 using Inventory.Services.Abstractions.Support;
 using Inventory.Models;
-using Inventory.Data;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Inventory.Data.UnitOfWork;
 using Inventory.Data.Abstractions.Repository;
+using Inventory.Data.UnitOfWork;
 
 namespace Inventory.Services.Support;
 
@@ -23,94 +21,119 @@ public class SupportService : ISupportService
         _logger = logger;
     }
 
-    public async Task<Result> AcceptTonerRequestAsync(string supportUserName, int tonerRequestId)
+    public async Task<Result<UserTonerRequest?>> AcceptTonerRequestAsync(string supportUserName, int tonerRequestId)
     {
         ApplicationUser? support = await _users.FindByNameAsync(supportUserName);
         if (support == null)
         {
             _logger.LogError("SupportService.AcceptTonerRequestAsync falhou: não existe usuário com a id {ID}", supportUserName);
-            return Result.Failure($"Não existe usuário com a id {supportUserName}");
+            return Result<UserTonerRequest?>.Failure($"Não existe usuário com a id {supportUserName}", null);
         }
 
         UserTonerRequest? request = await _repository.GetByIdAsync(tonerRequestId);
         if (request == null)
         {
             _logger.LogError("SupportService.AcceptTonerRequestAsync falhou: não existe requisição com a id {ID}", tonerRequestId);
-            return Result.Failure($"Não existe requisição com a id {tonerRequestId}");
+            return Result<UserTonerRequest?>.Failure($"Não existe requisição com a id {tonerRequestId}", null);
         }
 
         if (request.Status != TonerRequestStatus.Pending)
         {
             _logger.LogError("SupportService.AcceptTonerRequestAsync falhou: a requisição {ID} não está pendente", tonerRequestId);
-            return Result.Failure($"A requisição {tonerRequestId} não está pendente");
+            return Result<UserTonerRequest?>.Failure($"A requisição {tonerRequestId} não está pendente", request);
         }
 
         request.SupportUser = support;
         request.Status = TonerRequestStatus.Accepted;
-        return await _unitOfWork.CommitAsync();
+        
+        var commitResult = await _unitOfWork.CommitAsync();
+        if (!commitResult.IsSuccess)
+        {
+            return Result<UserTonerRequest?>.Failure(commitResult.Error, request);
+        }
+
+        return Result<UserTonerRequest?>.Success(request);
     }
 
-    public async Task<Result> RejectTonerRequestAsync(string supportUserName, int tonerRequestId)
+    public async Task<Result<UserTonerRequest?>> RejectTonerRequestAsync(string supportUserName, int tonerRequestId)
     {
         UserTonerRequest? request = await _repository.GetByIdAsync(tonerRequestId);
         if (request == null)
         {
             _logger.LogError("SupportService.RejectTonerRequestAsync falhou: não existe requisição com a id {ID}", tonerRequestId);
-            return Result.Failure($"Não existe requisição com a id {tonerRequestId}");
+            return Result<UserTonerRequest?>.Failure($"Não existe requisição com a id {tonerRequestId}", null);
         }
 
         await _repository.Delete(tonerRequestId);
-        return await _unitOfWork.CommitAsync();
+        var commitResult = await _unitOfWork.CommitAsync();
+        if (!commitResult.IsSuccess)
+        {
+            return Result<UserTonerRequest?>.Failure(commitResult.Error, request);
+        }
+        return Result<UserTonerRequest?>.Success(request);
     }
 
-    public async Task<Result> GoDeliverRequestAsync(string supportUserName, int tonerRequestId)
+    public async Task<Result<UserTonerRequest?>> GoDeliverRequestAsync(string supportUserName, int tonerRequestId)
     {
-        UserTonerRequest? request = await _repository.GetByIdAsync(tonerRequestId);
-        if (request == null)
+        var validationResult = await ValidateRequestByIdAsync(tonerRequestId, supportUserName, TonerRequestStatus.Accepted);
+        if (!validationResult.IsSuccess)
         {
-            _logger.LogError("SupportService.GoDeliverRequestAsync falhou: não existe requisição com a id {ID}", tonerRequestId);
-            return Result.Failure($"Não existe requisição com a id {tonerRequestId}");
-        }
-
-        if (request.Status != TonerRequestStatus.Accepted && request.SupportUserId == supportUserName)
-        {
-            _logger.LogError(
-                "SupportService.GoDeliverRequestAsync falhou: a requisição com a id {REQID} não está com o status 'aceito' ou não pertence ao usuário {USERID}", 
-                tonerRequestId, 
-                supportUserName
-            );
-            return Result.Failure($"A requisição com id {tonerRequestId} não está com o status 'aceito' ou não pertence ao usuário");
+            return validationResult;
         }
         
-        request.Status = TonerRequestStatus.InRoute;
-        return await _unitOfWork.CommitAsync();
+        var request = validationResult.Data;
+        request.Status = TonerRequestStatus.InRoute; // Em Rota
+        var commitResult = await _unitOfWork.CommitAsync();
+        if (!commitResult.IsSuccess)
+        {
+            return Result<UserTonerRequest?>.Failure(commitResult.Error, request);
+        }
+        return Result<UserTonerRequest?>.Success(request);
     }
 
-    public async Task<Result> CompleteDeliverRequestAsync(string supportUserName, int tonerRequestId)
+    public async Task<Result<UserTonerRequest?>> CompleteDeliverRequestAsync(string supportUserName, int tonerRequestId)
     {
-        UserTonerRequest? request = await _repository.GetByIdAsync(tonerRequestId);
-        if (request == null)
+        var validationResult = await ValidateRequestByIdAsync(tonerRequestId, supportUserName, TonerRequestStatus.InRoute);
+        if (!validationResult.IsSuccess)
         {
-            _logger.LogError("SupportService.GoDeliverRequestAsync falhou: não existe requisição com a id {ID}", tonerRequestId);
-            return Result.Failure($"Não existe requisição com a id {tonerRequestId}");
+            return validationResult;
         }
 
-        if (request.Status != TonerRequestStatus.Accepted && request.SupportUserId == supportUserName)
+        var request = validationResult.Data;
+        request.Status = TonerRequestStatus.Completed; // Concluído
+        var commitResult = await _unitOfWork.CommitAsync();
+        if (!commitResult.IsSuccess)
         {
-            _logger.LogError(
-                "SupportService.GoDeliverRequestAsync falhou: a requisição com a id {REQID} não está com o status 'aceito' ou não pertence ao usuário {USERID}", 
-                tonerRequestId, 
-                supportUserName
-            );
-            return Result.Failure($"a requisição com a id {tonerRequestId} não está com o status 'aceito' ou não pertence ao usuário {supportUserName}");
+            return Result<UserTonerRequest?>.Failure(commitResult.Error, request);
         }
-        
-        request.Status = TonerRequestStatus.Completed;
-        return await _unitOfWork.CommitAsync();
+        return Result<UserTonerRequest?>.Success(request);
     }
 
     public async Task<IEnumerable<UserTonerRequest>> GetTonerRequestsAsync()
     {
         return await _repository.GetAllAsync();
+    }
+
+    private async Task<Result<UserTonerRequest?>> ValidateRequestByIdAsync(int tonerRequestId, string supportUserName, TonerRequestStatus expectedStatus)
+    {
+        UserTonerRequest? request = await _repository.GetByIdAsync(tonerRequestId);
+        if (request == null)
+        {
+            _logger.LogError("ValidateRequestByIdAsync falhou: não existe requisição com a id {ID}", tonerRequestId);
+            return Result<UserTonerRequest?>.Failure($"Não existe requisição com a id {tonerRequestId}", null);
+        }
+
+        if (request.SupportUserId != supportUserName || request.Status != expectedStatus)
+        {
+            _logger.LogError(
+                "ValidateRequestByIdAsync falhou: a requisição {REQID} não pertence ao usuário {USERID} ou não está com o status {STATUS}", 
+                tonerRequestId, 
+                supportUserName,
+                expectedStatus
+            );
+            return Result<UserTonerRequest?>.Failure($"A requisição com id {tonerRequestId} não pode ser processada.", request);
+        }
+
+        return Result<UserTonerRequest?>.Success(request);
     }
 }

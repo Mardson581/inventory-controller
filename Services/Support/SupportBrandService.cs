@@ -18,7 +18,7 @@ public class SupportBrandService : ISupportBrandService
         _logger = logger;
     }
 
-    public async Task<Result> CreateBrandAsync(Brand brand)
+    public async Task<Result<int>> CreateBrandAsync(Brand brand)
     {
         await _repository.CreateAsync(brand);
         _logger.LogInformation("Criando Marca {NAME}", brand.Name);
@@ -35,7 +35,7 @@ public class SupportBrandService : ISupportBrandService
         return await _repository.GetByIdAsync(brandId);
     }
 
-    public async Task<Result> DeleteBrandAsync(int brandId)
+    public async Task<Result<int>> DeleteBrandAsync(int brandId)
     {
         _logger.LogWarning("Deletando marca com id {ID}", brandId);
         await _repository.Delete(brandId);

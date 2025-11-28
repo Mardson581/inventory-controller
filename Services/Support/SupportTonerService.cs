@@ -18,7 +18,7 @@ public class SupportTonerService : ISupportTonerService
         _logger = logger;
     }
 
-    public async Task<Result> CreateTonerAsync(Toner toner)
+    public async Task<Result<int>> CreateTonerAsync(Toner toner)
     {
         _logger.LogInformation("Criando Toner {NAME}", toner.Name);
         await _repository.CreateAsync(toner);
@@ -35,7 +35,7 @@ public class SupportTonerService : ISupportTonerService
         return await _repository.GetByIdAsync(id);
     }
 
-    public async Task<Result> DeleteTonerAsync(int tonerId)
+    public async Task<Result<int>> DeleteTonerAsync(int tonerId)
     {
         _logger.LogWarning("Deletando toner com id {ID}", tonerId);
         await _repository.Delete(tonerId);

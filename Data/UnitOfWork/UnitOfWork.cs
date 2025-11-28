@@ -59,16 +59,17 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         _context = context;
     }
 
-    private async Task<Result> SaveAsync()
+    private async Task<Result<int>> SaveAsync()
     {
-        if (await _context.SaveChangesAsync() > 0)
+        var changes = await _context.SaveChangesAsync();
+        if (changes > 0)
         {
-            return Result.Success();
+            return Result<int>.Success(changes);
         }
-        return Result.Failure("As alterações não foram salvas.");
+        return Result<int>.Failure("As alterações não foram salvas.", 0);
     }
 
-    public async Task<Result> CommitAsync()
+    public async Task<Result<int>> CommitAsync()
     {
         return await SaveAsync();
     }

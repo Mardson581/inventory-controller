@@ -20,7 +20,7 @@ public class SupportPrinterService : ISupportPrinterService
         _logger = logger;
     }
 
-    public async Task<Result> CreatePrinterAsync(Printer printer)
+    public async Task<Result<int>> CreatePrinterAsync(Printer printer)
     {
         _logger.LogInformation("Criando Impressora {NAME}", printer.Name);
         await _repository.CreateAsync(printer);
@@ -36,7 +36,7 @@ public class SupportPrinterService : ISupportPrinterService
         return await _repository.GetByIdAsync(printerId);
     }
     
-    public async Task<Result> DeletePrinterAsync(int printerId)
+    public async Task<Result<int>> DeletePrinterAsync(int printerId)
     {
         _logger.LogWarning("Deletando impressora com id {ID}", printerId);
         await _repository.Delete(printerId);

@@ -4,5 +4,5 @@ namespace Inventory.Data.Abstractions.UnitOfWork;
 
 public interface IUnitOfWork
 {
-    public Task<Result> CommitAsync();
+    public Task<Result<int>> CommitAsync();
 }
