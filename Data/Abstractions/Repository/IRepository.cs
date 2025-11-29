@@ -1,5 +1,3 @@
-using Inventory.Models;
-
 namespace Inventory.Data.Abstractions.Repository;
 
 public interface IRepository<TClass> where TClass : class

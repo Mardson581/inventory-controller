@@ -1,12 +1,12 @@
+using Inventory.DTOs.User;
 using Inventory.Models;
 
 namespace Inventory.Services.Abstractions.User;
 
 public interface IUserService
 {
-    public Task<bool> CreateTonerRequest(UserTonerRequest request);
-    public Task<bool> CancelTonerRequest(int id);
-    public Task<List<UserTonerRequest>> GetAllTonerRequests();
-    public Task<List<UserTonerRequest>> GetAllTonerRequestsByStatus(TonerRequestStatus status);
-    public Task<UserTonerRequest?> GetByIdAsync(int id);
+    public Task<Result<int>> CreateTonerRequest(CreateUserTonerRequestDTO request);
+    public Task<Result<int>> CancelTonerRequest(int id);
+    public Task<IEnumerable<UserTonerRequest>> GetAllTonerRequests();
+    public Task<IEnumerable<UserTonerRequest>> GetAllTonerRequestsByStatus(TonerRequestStatus status);
 }

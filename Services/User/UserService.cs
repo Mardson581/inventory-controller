@@ -1,63 +1,57 @@
-using Inventory.Data;
+using Inventory.Data.UnitOfWork;
+using Inventory.Data.Abstractions.Repository;
+using Inventory.DTOs.User;
 using Inventory.Models;
 using Inventory.Services.Abstractions.User;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Inventory.Services.User;
 
-public class UserService : IUserService
+public class UserService(UnitOfWork unitOfWork, UserManager<ApplicationUser> users, ILogger<UserService> logger) : IUserService
 {
-    private readonly InventoryDbContext _context;
-    private readonly UserManager<ApplicationUser> _users;
+    private readonly UnitOfWork _unitOfWork = unitOfWork;
+    private readonly IRepository<UserTonerRequest> _repository = unitOfWork.TonerRequests;
+    private readonly UserManager<ApplicationUser> _users = users;
     private readonly ILogger<UserService> _logger;
 
-    public UserService(
-        InventoryDbContext context,
-        UserManager<ApplicationUser> users,
-        ILogger<UserService> logger
-    )
+    public async Task<Result<int>> CreateTonerRequest(CreateUserTonerRequestDTO request)
     {
-        _context = context;
-        _users = users;
-        _logger = logger;
+        var userTonerRequest = new UserTonerRequest
+        {
+            UserId = request.UserId,
+            SupportUserId = request.SupportUserId,
+            Status = TonerRequestStatus.Pending,
+            TonerRequests = request.TonerRequests.Select(tr => new TonerRequest
+            {
+                TonerId = tr.TonerId,
+                Quantity = tr.Quantity
+            }).ToList()
+        };
+
+        await _repository.CreateAsync(userTonerRequest);
+        return await _unitOfWork.CommitAsync();
     }
 
-    public Task<bool> CreateTonerRequest(UserTonerRequest request)
+    public async Task<Result<int>> CancelTonerRequest(int id)
     {
-        _context.TonerRequests.Add(request);
-        return SaveChanges();
-    }
-
-    public async Task<bool> CancelTonerRequest(int id)
-    {
-        UserTonerRequest? request = await GetByIdAsync(id);
+        UserTonerRequest? request = await _repository.GetByIdAsync(id);
         if (request == null)
         {
             _logger.LogError("UserService.CancelTonerRequest falhou: pedido com id {ID} não existe", id);
-            return false;
+            return Result<int>.Failure($"UserService.CancelTonerRequest falhou: pedido com id {id} não existe", 0);
         }
         request.Status = TonerRequestStatus.Canceled;
-        return await SaveChanges();
+        return await _unitOfWork.CommitAsync();
     }
 
-    public async Task<List<UserTonerRequest>> GetAllTonerRequests()
+    public async Task<IEnumerable<UserTonerRequest>> GetAllTonerRequests()
     {
-        return await _context.TonerRequests.ToListAsync();
+        return await _repository.GetAllAsync();
     }
 
-    public async Task<List<UserTonerRequest>> GetAllTonerRequestsByStatus(TonerRequestStatus status)
+    public async Task<IEnumerable<UserTonerRequest>> GetAllTonerRequestsByStatus(TonerRequestStatus status)
     {
-        return await _context.TonerRequests.Where(r => r.Status == status).ToListAsync();
-    }
-
-    public async Task<UserTonerRequest?> GetByIdAsync(int id)
-    {
-        return await _context.TonerRequests.FindAsync(id);
-    }
-
-    public async Task<bool> SaveChanges()
-    {
-        return await _context.SaveChangesAsync() > 0;
+        IEnumerable<UserTonerRequest> list = await _repository.GetAllAsync();
+        return list.Where(tr => tr.Status == status);
     }
 }
